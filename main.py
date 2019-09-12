@@ -5,14 +5,9 @@ from dotenv import load_dotenv
 from urllib.parse import urlparse
 import argparse
 
-load_dotenv()
-api_key = os.getenv("TOKEN")
 
-parser = argparse.ArgumentParser(
-    description='Программа получает на вход или длинную ссылку или битли-ссылку'
-)
-parser.add_argument('link', help='Ссылка')
-args = parser.parse_args()
+load_dotenv()
+api_key = os.getenv("BITLY_GENERIC_TOKEN")
 
 
 class BadUrl(Exception):
@@ -24,12 +19,6 @@ class TheresNoToken(Exception):
 
 
 def get_short_url(key, url):
-    if not validators.url(url):
-        raise BadUrl()
-
-    if key is None:
-        raise TheresNoToken()
-
     api_resource = 'https://api-ssl.bitly.com/v4/bitlinks'
 
     headers = {
@@ -46,11 +35,6 @@ def get_short_url(key, url):
 
 
 def get_total_clicks(key, url):
-    if not validators.url(url):
-        raise BadUrl()
-
-    if key is None:
-        raise TheresNoToken()
 
     api_resource = f'https://api-ssl.bitly.com/v4/bitlinks/{crop_url(url)}/clicks/summary'
 
@@ -87,10 +71,20 @@ def crop_url(url):
 
 
 if __name__ == '__main__':
-
     try:
-
+        parser = argparse.ArgumentParser(
+            description='Программа получает на вход или длинную ссылку или битли-ссылку'
+        )
+        parser.add_argument('link', help='Ссылка')
+        args = parser.parse_args()
         url = args.link
+
+        if not validators.url(url):
+            raise BadUrl()
+
+        if api_key is None:
+            raise TheresNoToken()
+
         cropped_url = crop_url(url)
 
         if not is_bitlink(api_key, cropped_url):
